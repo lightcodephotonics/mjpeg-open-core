@@ -19,6 +19,8 @@
 
 `define 	INPUT_RGB_FILE 
 
+`define YUV422_ONLY
+
 `define MAX_PIC_WIDTH	2048
 // in 8x8 size
 `define W_PWInMbs 	 8 - 1  //   1280x720

@@ -4,6 +4,8 @@
 // Release history
 // VERSION Date AUTHOR DESCRIPTION
 
+`include "jpeg_global.v"
+
 module dc_luma_rom(
     input        		clk,
     input 		[3:0]  	VLI_size,
