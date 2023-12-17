@@ -16,8 +16,8 @@ module rfdp``dpeth``x``width (					\
                 .address_b (AB),    \
                 .clock0 (CLKA),    \
                 .clock1 (CLKB),    \
-                .clocken0 (CENA),    \
-                .clocken1 (CENB),    \
+                .clocken0 (~CENA),    \
+                .clocken1 (~CENB),    \
                 .data_a (data_a),    \
                 .data_b (DB),    \
                 .wren_a (1'b0),    \
@@ -58,8 +58,8 @@ module rfdp``dpeth``x``width (					\
         altera_syncram_component.outdata_sclr_a  = "NONE",    \
         altera_syncram_component.outdata_aclr_b  = "NONE",    \
         altera_syncram_component.outdata_sclr_b  = "NONE",    \
-        altera_syncram_component.outdata_reg_a  = "CLOCK0",    \
-        altera_syncram_component.outdata_reg_b  = "CLOCK1",    \
+        altera_syncram_component.outdata_reg_a  = "UNREGISTERED",    \
+        altera_syncram_component.outdata_reg_b  = "UNREGISTERED",    \
         altera_syncram_component.power_up_uninitialized  = "FALSE",    \
         altera_syncram_component.read_during_write_mode_port_a  = "NEW_DATA_NO_NBE_READ",    \
         altera_syncram_component.read_during_write_mode_port_b  = "NEW_DATA_NO_NBE_READ",    \
