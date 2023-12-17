@@ -16,7 +16,8 @@ module camera(
 	
 	input						cam_vsync_i,
 	input						cam_href_i,
-	input		[`W_CAMD_I:0]	cam_data_i,			
+	input		[`W_CAMD_I_FEED:0]	cam_data_i,	
+	input						cam_data_ok_i,		
 	input     	[`W_PW:0]  		PicWidth_i,	
     input     	[`W_PH:0]  		PicHeight_i,	
 	output reg 					cam_pic_start_f,
@@ -33,7 +34,8 @@ module camera(
 	wire	cam_vsync_falling = {cam_vsync_p1, cam_vsync } == 2'b10;
 	
 	reg							cam_href;
-	reg			[`W_CAMD_I:0]	cam_data;			
+	reg			[`W_CAMD_I_FEED:0]	cam_data;		
+	reg  						cam_data_ok;	
 	reg							cam_href_p1;
 	
 	wire	_cam_href_rising  = {cam_href    , cam_href_i} == 2'b01;
@@ -41,13 +43,19 @@ module camera(
 	
 	always @(posedge cam_clk `RST_EDGE_CAM)
 		if (`ZST_CAM) begin
-			cam_href <= 0;
-			cam_vsync <= 0;
-			cam_data <= 0;
+			cam_href <= 'b0;
+			cam_vsync <= 'b0;
+			cam_data <= 'b0;
+			cam_data_ok <= 'b0;
 		end else begin
 			cam_href <= cam_href_i;
 			cam_vsync <= cam_vsync_i;
 			cam_data <= cam_data_i;
+`ifdef INPUT_DOK_REQUIRED
+			cam_data_ok <= cam_data_ok_i;
+`else
+			cam_data_ok <= 1'b1;
+`endif
 		end
 	always @(posedge cam_clk `RST_EDGE_CAM)
 		if (`ZST_CAM) begin
@@ -87,7 +95,7 @@ module camera(
         if (`RST_CAM) cam_vsync_working <= 1;		
         else          cam_vsync_working <= encoder_working ? cam_vsync : 1'b1;
 
-	wire 	cam_pix_valid = (!cam_vsync_working & cam_href);
+	wire 	cam_pix_valid = (!cam_vsync_working & cam_href & cam_data_ok);
 	
 	parameter  W_CAMD  = 4*(`W_CAMD_I+1) - 1;
 	parameter  W_ACAMD = 4;
@@ -96,7 +104,8 @@ module camera(
 `else
 	`define CAM_D_FIFO  rfdp32x64
 `endif
-	
+
+
 	reg				[  1:0]		cam_pix_vparity;
 	reg							cam_pix_vparity_p1;
     reg				[3:0][`W_CAMD_I:0]	db_cam_d;
@@ -106,13 +115,34 @@ module camera(
     wire            [W_CAMD :0] qa_cam_d;
     reg             [W_ACAMD:0] ab_cam_d;	
 	wire			 [W_CAMD :0] _db_cam_d = db_cam_d;
+
+`ifdef INPUT_DWORD	
 	always @(posedge cam_clk `RST_EDGE_CAM)
 		if (`RST_CAM) cenb_cam_d <= 1;
-		else          cenb_cam_d <= ~(cam_pix_vparity == 3);
-	
+		else          cenb_cam_d <= ~( (cam_pix_vparity == 2) & cam_pix_valid);
 	always @(posedge cam_clk `RST_EDGE_CAM)
-		if (`ZST_CAM)		db_cam_d[cam_pix_vparity] <= 0;
-		else 				db_cam_d[cam_pix_vparity] <= cam_data;
+		if (`ZST_CAM)		begin
+			db_cam_d[cam_pix_vparity]  <= 0;
+			db_cam_d[cam_pix_vparity + 1] <= 0;
+		end
+		else if (cam_pix_valid)	begin
+			db_cam_d[cam_pix_vparity] <= cam_data [`W_CAMD_I:0];
+			db_cam_d[cam_pix_vparity + 1] <= cam_data[`W_CAMD_I_FEED:`W_CAMD_I+1];
+		end
+	always @(posedge cam_clk `RST_EDGE_CAM)
+		if (`RST_CAM)				cam_pix_vparity <= 0;
+		else if (cam_pix_valid)		cam_pix_vparity[1] <= ~cam_pix_vparity[1];
+		else						cam_pix_vparity <= 0;
+	always @(posedge cam_clk `RST_EDGE_CAM)
+		if (`RST_CAM) cam_pix_vparity_p1 <= 0;
+		else          cam_pix_vparity_p1 <= (cam_pix_vparity == 2) & cam_pix_valid;
+`else // ndef INPUT_DWORD
+	always @(posedge cam_clk `RST_EDGE_CAM)
+		if (`RST_CAM) cenb_cam_d <= 1;
+		else          cenb_cam_d <= ~((cam_pix_vparity == 3) & cam_pix_valid);
+	always @(posedge cam_clk `RST_EDGE_CAM)
+		if (`ZST_CAM)		    db_cam_d[cam_pix_vparity] <= 0;
+		else if (cam_pix_valid) db_cam_d[cam_pix_vparity] <= cam_data;
 	always @(posedge cam_clk `RST_EDGE_CAM)
 		if (`RST_CAM)				cam_pix_vparity <= 0;
 		else if (cam_pix_valid)		cam_pix_vparity <= cam_pix_vparity + 1;
@@ -120,6 +150,8 @@ module camera(
 	always @(posedge cam_clk `RST_EDGE_CAM)
 		if (`RST_CAM) cam_pix_vparity_p1 <= 0;
 		else          cam_pix_vparity_p1 <= (cam_pix_vparity == 3) & cam_pix_valid;
+`endif
+
 
 	`CAM_D_FIFO fifo_cam_d (
         .CLKA   (clk),

@@ -18,6 +18,9 @@
 
 
 `define 	INPUT_RGB_FILE 
+`define INPUT_DWORD 
+`define INPUT_DOK_REQUIRED 
+
 
 `define YUV422_ONLY
 
@@ -160,7 +163,11 @@
 `endif
 `define BD_OFFSET	0 
 
-
+`ifdef INPUT_DWORD
+	`define W_CAMD_I_FEED (`W_CAMD_I + 1) *2 - 1 
+`else
+	`define W_CAMD_I_FEED `W_CAMD_I
+`endif
 
 `define  IP_W 8
 `define  OP_W 12

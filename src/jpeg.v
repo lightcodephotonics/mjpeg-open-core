@@ -17,7 +17,8 @@ module jpeg_enc(
 	
 	input							cam_vsync_i,
 	input							cam_href_i,
-	input		[`W_CAMD_I:0]		cam_data_i,	
+	input		[`W_CAMD_I_FEED:0]		cam_data_i,	
+	input							cam_data_ok_i,
 	input     	[`W_PW:0]  			PicWidth_i,	
     input     	[`W_PH:0]  			PicHeight_i,	
 	
@@ -58,7 +59,8 @@ module jpeg_enc(
 		.encoder_active		(encoder_active),	
 		.cam_vsync_i		(cam_vsync_i),
 		.cam_href_i			(cam_href_i),
-		.cam_data_i			(cam_data_i),			
+		.cam_data_i			(cam_data_i),	
+		.cam_data_ok_i		(cam_data_ok_i),
 		.PicWidth_i			(PicWidth_i),	
 		.PicHeight_i		(PicHeight_i),		
 		.cam_pic_start_f	(cam_pic_start_f),
