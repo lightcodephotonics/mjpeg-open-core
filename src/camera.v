@@ -318,7 +318,7 @@ module camera(
 		else      	cena_cam_d <= ~fifo_rd_b2;
 	always @(`CLK_RST_EDGE)
 		if (`RST)					aa_cam_d <= 0;
-		else if (cam_pic_start_f)	aa_cam_d <= ab_cam_d; 
+		else if (cam_pic_start_f)	aa_cam_d <= ab_cam_d;  // TODO: change to synchronized Gray counter for proper CDC
 		else if (fifo_rd_b1)		aa_cam_d <= aa_cam_d + 1;
 	
 	reg		[W_CAMD:0]		qa_cam_d_d1;
