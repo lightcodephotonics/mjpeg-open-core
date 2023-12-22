@@ -18,7 +18,7 @@ module rfdp``dpeth``x``width (					\
                 .clock1 (CLKB),    \
                 .clocken0 (~CENA),    \
                 .clocken1 (~CENB),    \
-                .data_a (data_a),    \
+                .data_a ({width{1'b0}}),    \
                 .data_b (DB),    \
                 .wren_a (1'b0),    \
                 .wren_b (1'b1),    \
