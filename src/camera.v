@@ -115,6 +115,7 @@ module camera(
     wire            [W_CAMD :0] qa_cam_d;
     reg             [W_ACAMD:0] ab_cam_d;	
 	wire			 [W_CAMD :0] _db_cam_d = db_cam_d;
+	integer						iter;
 
 `ifdef INPUT_DWORD	
 	always @(posedge cam_clk `RST_EDGE_CAM)
@@ -122,8 +123,9 @@ module camera(
 		else          cenb_cam_d <= ~( (cam_pix_vparity == 2) & cam_pix_valid);
 	always @(posedge cam_clk `RST_EDGE_CAM)
 		if (`ZST_CAM)		begin
-			db_cam_d[cam_pix_vparity]  <= 0;
-			db_cam_d[cam_pix_vparity + 1] <= 0;
+			for (iter = 0; iter < 4;iter = iter + 1 ) db_cam_d[iter]  <= 0;
+			//db_cam_d[cam_pix_vparity]  <= 0;
+			//db_cam_d[cam_pix_vparity + 1] <= 0;
 		end
 		else if (cam_pix_valid)	begin
 			db_cam_d[cam_pix_vparity] <= cam_data [`W_CAMD_I:0];
@@ -141,7 +143,7 @@ module camera(
 		if (`RST_CAM) cenb_cam_d <= 1;
 		else          cenb_cam_d <= ~((cam_pix_vparity == 3) & cam_pix_valid);
 	always @(posedge cam_clk `RST_EDGE_CAM)
-		if (`ZST_CAM)		    db_cam_d[cam_pix_vparity] <= 0;
+		if (`ZST_CAM)		    for (iter = 0; iter < 4;iter = iter + 1 ) db_cam_d[iter]  <= 0;
 		else if (cam_pix_valid) db_cam_d[cam_pix_vparity] <= cam_data;
 	always @(posedge cam_clk `RST_EDGE_CAM)
 		if (`RST_CAM)				cam_pix_vparity <= 0;
