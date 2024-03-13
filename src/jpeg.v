@@ -101,7 +101,14 @@ module jpeg_enc(
 	wire		fdct_ready_for_next;
 	reg			doing_fdct;
 	wire		fdct_go = !doing_fdct && (MB_semaphore!=0) && (!ee_fifo_afull_Dm);
-	
+
+	reg [2:0] cam_vsync_i_edgedetector;  
+	always @(`CLK_RST_EDGE)
+		if (`RST)					cam_vsync_i_edgedetector <= 0;
+		else cam_vsync_i_edgedetector <= {cam_vsync_i_edgedetector[1:0],cam_vsync_i};
+
+	wire cam_vsync_i_negedge = cam_vsync_i_edgedetector[2:1] == 2'b10;
+
 	always @(`CLK_RST_EDGE)
 		if (`RST)					MB_semaphore <= 0;
 		else if (camfifo_o_f)		MB_semaphore <= PicWidthInMbs;
@@ -131,7 +138,10 @@ module jpeg_enc(
         if (`RST) begin
             MB_Col <= 0;                  
             MB_Row <= 0;
-        end else if (fdct_ready_for_next) begin
+        end else if (cam_vsync_i_negedge) begin
+			MB_Col <= 0;                  
+            MB_Row <= 0;
+		end else if (fdct_ready_for_next) begin
             if (MB_Col_max_f) begin
                 MB_Row <= MB_Row_max_f ? 0 : MB_Row+1;
                 MB_Col <= 0;
