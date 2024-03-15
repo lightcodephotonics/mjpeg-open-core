@@ -109,6 +109,13 @@ module jpeg_enc(
 
 	wire cam_vsync_i_negedge = cam_vsync_i_edgedetector[2:1] == 2'b10;
 
+	reg [2:0] cam_href_i_edgedetector;  
+	always @(`CLK_RST_EDGE)
+		if (`RST)					cam_href_i_edgedetector <= 0;
+		else cam_href_i_edgedetector <= {cam_href_i_edgedetector[1:0],cam_href_i};
+
+	wire cam_href_i_posedge = cam_href_i_edgedetector[2:1] == 2'b01;
+
 	always @(`CLK_RST_EDGE)
 		if (`RST)					MB_semaphore <= 0;
 		else if (camfifo_o_f)		MB_semaphore <= PicWidthInMbs;
